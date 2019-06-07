@@ -93,6 +93,21 @@ const (
 	ShareCapAsymmetric             uint32 = 0x00000080
 )
 
+type HeaderV1 struct {
+	ProtocolID       []byte `smb:"fixed:4"`
+	Command          uint8
+	Status           uint32
+	Flags            uint8
+	Flags2           uint16
+	PIDHigh          uint16
+	SecurityFeatures []byte `smb:"fixed:8"`
+	Reserved         uint16
+	TID              uint16
+	PIDLow           uint16
+	UID              uint16
+	MID              uint16
+}
+
 type Header struct {
 	ProtocolID    []byte `smb:"fixed:4"`
 	StructureSize uint16
@@ -213,6 +228,13 @@ type TreeDisconnectRes struct {
 	Header
 	StructureSize uint16
 	Reserved      uint16
+}
+
+func newHeaderV1() HeaderV1 {
+	return HeaderV1 {
+		ProtocolID:    []byte(ProtocolSmb),
+		Command: 64, // invalid command, we'll just get back a status of 0x160002
+	}
 }
 
 func newHeader() Header {

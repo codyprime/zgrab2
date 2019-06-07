@@ -221,11 +221,38 @@ func wstring(input []byte) string {
 	return string(utf16.Decode(u16))
 }
 
+
+// Temporary placeholder to detect SMB v1 by sending a simple v1
+// header with an invalid command; the response with be an error
+// code, but with a v1 ProtocolID
+// TODO: Send a full v1 negotiation message, and parse the response
+func (ls *LoggedSession) LoggedNegotiateProtocolv1(setup bool) error {
+	s := &ls.Session
+
+	hdr := newHeaderV1()
+	buf, err := s.send(hdr)
+	if err != nil {
+		s.Debug("", err)
+		return err
+	}
+	if string(buf[0:4]) == ProtocolSmb {
+		ls.Log.SupportV1 = true
+		ls.Log.Version = &SMBVersions{Major: 1,
+		Minor:     0,
+		Revision:  0,
+		VerString: "SMB 1.0"}
+		return nil
+	}
+	return fmt.Errorf("Invalid v1 Protocol ID\n")
+}
+
 // LoggedNegotiateProtocol performs the same operations as
 // Session.NegotiateProtocol() up to the point where user credentials would be
 // required, and logs the server's responses.
 // If setup is false, stop after reading the response to Negotiate.
 // If setup is true, send a SessionSetup1 request.
+//
+// Note: This supports SMB2 only.
 func (ls *LoggedSession) LoggedNegotiateProtocol(setup bool) error {
 	s := &ls.Session
 	negReq := s.NewNegotiateReq()
