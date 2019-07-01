@@ -4,7 +4,7 @@ set -e
 MODULE_DIR=$(dirname $0)
 ZGRAB_ROOT=$MODULE_DIR/../..
 ZGRAB_OUTPUT=$ZGRAB_ROOT/zgrab-output
-CONTAINER_DIR="./integration_tests/redis/container"
+CONTAINER_DIR="//usr/local/etc/redis"
 
 mkdir -p $ZGRAB_OUTPUT/redis
 
