@@ -7,4 +7,11 @@
 : "${CONTAINER_NAME:?}"
 
 set -e
-docker run --rm --link $CONTAINER_NAME:target -e ZGRAB_TARGET=target zgrab2_runner $@
+
+MOUNT=
+if [ -n "$MOUNT_HOST" ]; then
+    : "${MOUNT_CONTAINER:?}"
+    MOUNT="-v $MOUNT_HOST:$MOUNT_CONTAINER"
+fi
+
+docker run --rm --link $CONTAINER_NAME:target $MOUNT -e ZGRAB_TARGET=target zgrab2_runner $@
