@@ -4,9 +4,8 @@ set -e
 MODULE_DIR=$(dirname $0)
 ZGRAB_ROOT=$MODULE_DIR/../..
 ZGRAB_OUTPUT=$ZGRAB_ROOT/zgrab-output
-MOUNT_CONTAINER="/var/censys/input/redis"
-
 MOUNT_HOST="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/container"
+MOUNT_CONTAINER="/var/censys/input/redis"
 
 mkdir -p $ZGRAB_OUTPUT/redis
 
