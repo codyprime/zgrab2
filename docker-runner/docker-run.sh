@@ -8,7 +8,7 @@
 
 set -e
 
-MOUNT=
+MOUNT=""
 if [ -n "$MOUNT_HOST" ]; then
     : "${MOUNT_CONTAINER:?}"
     MOUNT="-v $MOUNT_HOST:$MOUNT_CONTAINER"
