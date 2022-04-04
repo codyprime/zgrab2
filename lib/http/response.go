@@ -16,6 +16,7 @@ import (
 	"io"
 	"net/textproto"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -44,6 +45,12 @@ type Response struct {
 	//
 	// Keys in the map are canonicalized (see CanonicalHeaderKey).
 	Header Header `json:"headers,omitempty"`
+
+	// The raw bytes of the MIME headers, as read from the underlying
+	// reader.  This allows for post-processing to be done on an exact
+	// copy of the headers.  The headers will not be canonicalized nor
+	// re-ordered or converted to a map.
+	HeadersRaw []byte `json:headers_raw,omitempty"`
 
 	// Body represents the response body.
 	//
@@ -194,6 +201,14 @@ func ReadResponse(r *bufio.Reader, req *Request) (*Response, error) {
 		return resp, &badStringError{"malformed HTTP version", resp.Protocol.Name}
 	}
 
+	// Create a duplicate of the raw MIME headers.
+	// Uses a TeeReader to copy all reads from 'r' to 'rawMIMEBuffer'
+	var rawMIMEBuffer bytes.Buffer
+	teeReader := io.TeeReader(r, &rawMIMEBuffer)
+	mimeReader := bufio.NewReader(teeReader)
+	// Discard the old textproto and create a new one, around the TeeReader
+	tp = textproto.NewReader(mimeReader)
+
 	// Parse the response headers.
 	mimeHeader, err := tp.ReadMIMEHeader()
 	if err != nil {
@@ -203,6 +218,9 @@ func ReadResponse(r *bufio.Reader, req *Request) (*Response, error) {
 		return resp, err
 	}
 	resp.Header = Header(mimeHeader)
+	resp.HeadersRaw = rawMIMEBuffer.Bytes()
+	fmt.Fprintf(os.Stderr, "Raw Headers: %s\n", hex.Dump(resp.HeadersRaw))
+	fmt.Fprintf(os.Stderr, "Headers: %v\n", mimeHeader)
 
 	fixPragmaCacheControl(resp.Header)
 
