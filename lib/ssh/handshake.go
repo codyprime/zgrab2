@@ -33,7 +33,7 @@ type keyingTransport interface {
 	// prepareKeyChange sets up a key change. The key change for a
 	// direction will be effected if a msgNewKeys message is sent
 	// or received.
-	prepareKeyChange(*algorithms, *kexResult) error
+	prepareKeyChange(*Algorithms, *kexResult) error
 }
 
 // handshakeTransport implements rekeying on top of a keyingTransport
@@ -61,7 +61,7 @@ type handshakeTransport struct {
 	mu               sync.Mutex
 	writeError       error
 	sentInitPacket   []byte
-	sentInitMsg      *kexInitMsg
+	sentInitMsg      *KexInitMsg
 	pendingPackets   [][]byte // Used when a key exchange is in progress.
 	writePacketsLeft uint32
 	writeBytesLeft   int64
@@ -87,7 +87,7 @@ type handshakeTransport struct {
 	bannerCallback BannerCallback
 
 	// Algorithms agreed in the last key exchange.
-	algorithms *algorithms
+	algorithms *Algorithms
 
 	// Counters exclusively owned by readLoop.
 	readPacketsLeft uint32
@@ -252,7 +252,7 @@ func (t *handshakeTransport) resetWriteThresholds() {
 	if t.config.RekeyThreshold > 0 {
 		t.writeBytesLeft = int64(t.config.RekeyThreshold)
 	} else if t.algorithms != nil {
-		t.writeBytesLeft = t.algorithms.w.rekeyBytes()
+		t.writeBytesLeft = t.algorithms.W.rekeyBytes()
 	} else {
 		t.writeBytesLeft = 1 << 30
 	}
@@ -296,7 +296,7 @@ write:
 		// we never block on sending to t.requestKex.
 
 		// We're not servicing t.startKex, but the remote end
-		// has just sent us a kexInitMsg, so it can't send
+		// has just sent us a KexInitMsg, so it can't send
 		// another key change request, until we close the done
 		// channel on the pendingKex request.
 
@@ -367,7 +367,7 @@ func (t *handshakeTransport) resetReadThresholds() {
 	if t.config.RekeyThreshold > 0 {
 		t.readBytesLeft = int64(t.config.RekeyThreshold)
 	} else if t.algorithms != nil {
-		t.readBytesLeft = t.algorithms.r.rekeyBytes()
+		t.readBytesLeft = t.algorithms.R.rekeyBytes()
 	} else {
 		t.readBytesLeft = 1 << 30
 	}
@@ -447,7 +447,7 @@ func (t *handshakeTransport) sendKexInit() error {
 		return nil
 	}
 
-	msg := &kexInitMsg{
+	msg := &KexInitMsg{
 		KexAlgos:                t.config.KeyExchanges,
 		CiphersClientServer:     t.config.Ciphers,
 		CiphersServerClient:     t.config.Ciphers,
@@ -565,7 +565,7 @@ func (t *handshakeTransport) enterKeyExchange(otherInitPacket []byte) error {
 		log.Printf("%s entered key exchange", t.id())
 	}
 
-	otherInit := &kexInitMsg{}
+	otherInit := &KexInitMsg{}
 	if err := Unmarshal(otherInitPacket, otherInit); err != nil {
 		return err
 	}
@@ -617,12 +617,12 @@ func (t *handshakeTransport) enterKeyExchange(otherInitPacket []byte) error {
 		}
 	}
 
-	kex, ok := kexAlgoMap[t.algorithms.kex]
+	kex, ok := kexAlgoMap[t.algorithms.Kex]
 	if !ok {
-		return fmt.Errorf("ssh: unexpected key exchange algorithm %v", t.algorithms.kex)
+		return fmt.Errorf("ssh: unexpected key exchange algorithm %v", t.algorithms.Kex)
 	}
 
-	kex = kex.GetNew(t.algorithms.kex)
+	kex = kex.GetNew(t.algorithms.Kex)
 
 	if t.config.ConnLog != nil {
 		t.config.ConnLog.KeyExchange = kex
@@ -714,12 +714,12 @@ func pickHostKey(hostKeys []Signer, algo string) AlgorithmSigner {
 }
 
 func (t *handshakeTransport) server(kex kexAlgorithm, magics *handshakeMagics) (*kexResult, error) {
-	hostKey := pickHostKey(t.hostKeys, t.algorithms.hostKey)
+	hostKey := pickHostKey(t.hostKeys, t.algorithms.HostKey)
 	if hostKey == nil {
 		return nil, errors.New("ssh: internal error: negotiated unsupported signature type")
 	}
 
-	r, err := kex.Server(t.conn, t.config.Rand, magics, hostKey, t.algorithms.hostKey, t.config)
+	r, err := kex.Server(t.conn, t.config.Rand, magics, hostKey, t.algorithms.HostKey, t.config)
 	return r, err
 }
 
@@ -734,7 +734,7 @@ func (t *handshakeTransport) client(kex kexAlgorithm, magics *handshakeMagics) (
 		return nil, err
 	}
 
-	if err := verifyHostKeySignature(hostKey, t.algorithms.hostKey, result); err != nil {
+	if err := verifyHostKeySignature(hostKey, t.algorithms.HostKey, result); err != nil {
 		return nil, err
 	}
 

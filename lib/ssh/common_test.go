@@ -10,7 +10,7 @@ import (
 )
 
 func TestFindAgreedAlgorithms(t *testing.T) {
-	initKex := func(k *kexInitMsg) {
+	initKex := func(k *KexInitMsg) {
 		if k.KexAlgos == nil {
 			k.KexAlgos = []string{"kex1"}
 		}
@@ -63,7 +63,7 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 		}
 	}
 
-	initAlgs := func(a *algorithms) {
+	initAlgs := func(a *Algorithms) {
 		if a.kex == "" {
 			a.kex = "kex1"
 		}
@@ -76,8 +76,8 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 
 	type testcase struct {
 		name                   string
-		clientIn, serverIn     kexInitMsg
-		wantClient, wantServer algorithms
+		clientIn, serverIn     KexInitMsg
+		wantClient, wantServer Algorithms
 		wantErr                bool
 	}
 
@@ -88,7 +88,7 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 
 		{
 			name: "no common hostkey",
-			serverIn: kexInitMsg{
+			serverIn: KexInitMsg{
 				ServerHostKeyAlgos: []string{"hostkey2"},
 			},
 			wantErr: true,
@@ -96,7 +96,7 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 
 		{
 			name: "no common kex",
-			serverIn: kexInitMsg{
+			serverIn: KexInitMsg{
 				KexAlgos: []string{"kex2"},
 			},
 			wantErr: true,
@@ -104,7 +104,7 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 
 		{
 			name: "no common cipher",
-			serverIn: kexInitMsg{
+			serverIn: KexInitMsg{
 				CiphersClientServer: []string{"cipher2"},
 			},
 			wantErr: true,
@@ -112,15 +112,15 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 
 		{
 			name: "client decides cipher",
-			serverIn: kexInitMsg{
+			serverIn: KexInitMsg{
 				CiphersClientServer: []string{"cipher1", "cipher2"},
 				CiphersServerClient: []string{"cipher2", "cipher3"},
 			},
-			clientIn: kexInitMsg{
+			clientIn: KexInitMsg{
 				CiphersClientServer: []string{"cipher2", "cipher1"},
 				CiphersServerClient: []string{"cipher3", "cipher2"},
 			},
-			wantClient: algorithms{
+			wantClient: Algorithms{
 				r: directionAlgorithms{
 					Cipher: "cipher3",
 				},
@@ -128,7 +128,7 @@ func TestFindAgreedAlgorithms(t *testing.T) {
 					Cipher: "cipher2",
 				},
 			},
-			wantServer: algorithms{
+			wantServer: Algorithms{
 				w: directionAlgorithms{
 					Cipher: "cipher3",
 				},

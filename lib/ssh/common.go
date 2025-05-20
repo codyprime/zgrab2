@@ -184,43 +184,43 @@ var aeadCiphers = map[string]bool{
 	chacha20Poly1305ID: true,
 }
 
-type algorithms struct {
-	kex     string
-	hostKey string
-	w       directionAlgorithms
-	r       directionAlgorithms
+type Algorithms struct {
+	Kex     string
+	HostKey string
+	W       directionAlgorithms
+	R       directionAlgorithms
 }
 
-func (alg *algorithms) MarshalJSON() ([]byte, error) {
+func (alg *Algorithms) MarshalJSON() ([]byte, error) {
 	aux := struct {
 		Kex     string              `json:"dh_kex_algorithm"`
 		HostKey string              `json:"host_key_algorithm"`
 		W       directionAlgorithms `json:"client_to_server_alg_group"`
 		R       directionAlgorithms `json:"server_to_client_alg_group"`
 	}{
-		Kex:     alg.kex,
-		HostKey: alg.hostKey,
-		W:       alg.w,
-		R:       alg.r,
+		Kex:     alg.Kex,
+		HostKey: alg.HostKey,
+		W:       alg.W,
+		R:       alg.R,
 	}
 
 	return json.Marshal(aux)
 }
 
-func findAgreedAlgorithms(isClient bool, clientKexInit, serverKexInit *kexInitMsg) (algs *algorithms, err error) {
-	result := &algorithms{}
+func findAgreedAlgorithms(isClient bool, clientKexInit, serverKexInit *KexInitMsg) (algs *Algorithms, err error) {
+	result := &Algorithms{}
 
-	result.kex, err = findCommon("key exchange", clientKexInit.KexAlgos, serverKexInit.KexAlgos)
+	result.Kex, err = findCommon("key exchange", clientKexInit.KexAlgos, serverKexInit.KexAlgos)
 	if err != nil {
 		return
 	}
 
-	result.hostKey, err = findCommon("host key", clientKexInit.ServerHostKeyAlgos, serverKexInit.ServerHostKeyAlgos)
+	result.HostKey, err = findCommon("host key", clientKexInit.ServerHostKeyAlgos, serverKexInit.ServerHostKeyAlgos)
 	if err != nil {
 		return
 	}
 
-	stoc, ctos := &result.w, &result.r
+	stoc, ctos := &result.W, &result.R
 	if isClient {
 		ctos, stoc = stoc, ctos
 	}

@@ -77,14 +77,14 @@ type connectionState struct {
 // prepareKeyChange sets up key material for a keychange. The key changes in
 // both directions are triggered by reading and writing a msgNewKey packet
 // respectively.
-func (t *transport) prepareKeyChange(algs *algorithms, kexResult *kexResult) error {
-	ciph, err := newPacketCipher(t.reader.dir, algs.r, kexResult)
+func (t *transport) prepareKeyChange(algs *Algorithms, kexResult *kexResult) error {
+	ciph, err := newPacketCipher(t.reader.dir, algs.R, kexResult)
 	if err != nil {
 		return err
 	}
 	t.reader.pendingKeyChange <- ciph
 
-	ciph, err = newPacketCipher(t.writer.dir, algs.w, kexResult)
+	ciph, err = newPacketCipher(t.writer.dir, algs.W, kexResult)
 	if err != nil {
 		return err
 	}

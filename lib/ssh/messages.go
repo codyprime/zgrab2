@@ -53,7 +53,7 @@ func (d *disconnectMsg) Error() string {
 // See RFC 4253, section 7.1.
 const msgKexInit = 20
 
-type kexInitMsg struct {
+type KexInitMsg struct {
 	Cookie                  [16]byte `sshtype:"20"`
 	KexAlgos                []string
 	ServerHostKeyAlgos      []string
@@ -86,7 +86,7 @@ type JsonKexInitMsg struct {
 	ServerHaSSH             string   `json:"serverHaSSH"`
 }
 
-func (kex *kexInitMsg) MarshalJSON() ([]byte, error) {
+func (kex *KexInitMsg) MarshalJSON() ([]byte, error) {
 	temp := JsonKexInitMsg{
 		Cookie:                  kex.Cookie[:],
 		KexAlgos:                kex.KexAlgos,
@@ -106,7 +106,7 @@ func (kex *kexInitMsg) MarshalJSON() ([]byte, error) {
 	return json.Marshal(temp)
 }
 
-func (kex *kexInitMsg) GenerateServerHaSSH() string {
+func (kex *KexInitMsg) GenerateServerHaSSH() string {
 	input := strings.Join(
 		[]string{
 			strings.Join(kex.KexAlgos, ","),
@@ -845,7 +845,7 @@ func decode(packet []byte) (any, error) {
 	case msgExtInfo:
 		msg = new(extInfoMsg)
 	case msgKexInit:
-		msg = new(kexInitMsg)
+		msg = new(KexInitMsg)
 	case msgKexDHInit:
 		msg = new(kexDHInitMsg)
 	case msgKexDHReply:
