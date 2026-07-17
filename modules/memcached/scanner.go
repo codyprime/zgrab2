@@ -322,7 +322,7 @@ func ScanAscii(ctx context.Context, dialGroup *zgrab2.DialerGroup, target *zgrab
 	}
 
 	results := make([]byte, 2000)
-	results, err = zgrab2.ReadAvailableWithOptions(conn, len(results), 500*time.Millisecond, time.Second, len(results))
+	results, err = zgrab2.ReadAvailableWithOptions(conn, len(results), 500*time.Millisecond, 0, len(results))
 	result := MemcachedResult{}
 	if err != nil {
 		return zgrab2.TryGetScanStatus(err), nil, fmt.Errorf("unable to read target (%s): %w", target.String(), err)
